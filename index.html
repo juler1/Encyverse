@@ -189,7 +189,9 @@ nav{height:48px;display:flex;overflow-x:auto;background:#151821;border-bottom:1p
 <div class="actions">
 <button class="gold" onclick="runWorldIntegrity()">🔎 Revisar mundo</button>
 <button class="secondary" onclick="createBackup('revisión manual')">💾 Crear backup</button>
+<button class="secondary" onclick="renderStorageDiagnostic()">📊 Ver uso de espacio</button>
 </div>
+<div id="storageDiagnostic" style="margin-top:14px"></div>
 <div id="integritySummary" style="margin-top:14px"></div>
 <div id="integrityResults" class="integrity-list"></div>
 <h2 style="margin-top:28px">💾 Seguridad y transferencia</h2>
@@ -1616,6 +1618,33 @@ function showGenealogy(id){
 }
 
 /* Integridad: mantenimiento real, incluida bidireccionalidad y etiquetas fotográficas */
+function renderStorageDiagnostic(){
+  const box=document.getElementById('storageDiagnostic');if(!box)return;
+  const id=getCurrentWorldId();
+  const keys=[['Fichas (db)','siku_db::'+id],['Subcategorías','siku_subcats::'+id],['Mundo/ajustes (incluye mapas)','siku_world::'+id],['Backups','siku_backups::'+id]];
+  let rows='',worldTotal=0,grandTotal=0;
+  keys.forEach(([label,k])=>{
+    const v=localStorage.getItem(k)||'';
+    const kb=(v.length/1024);
+    worldTotal+=v.length;
+    rows+='<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #23283380"><span>'+esc(label)+'</span><b>'+kb.toFixed(1)+' KB</b></div>';
+  });
+  for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);grandTotal+=(localStorage.getItem(k)||'').length;}
+  const otherWorlds=grandTotal-worldTotal;
+  let html='<div class="stat" style="padding:14px">'+
+    '<b>Este mundo:</b> '+(worldTotal/1024).toFixed(1)+' KB<br>'+rows+
+    '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #292d38"><b>Total en el navegador (todos los mundos):</b> '+(grandTotal/1024).toFixed(1)+' KB'+
+    (otherWorlds>0?' <span style="color:#9297a3">(otros mundos: '+(otherWorlds/1024).toFixed(1)+' KB)</span>':'')+
+    '</div></div>';
+  box.innerHTML=html;
+  if(navigator.storage&&navigator.storage.estimate){
+    navigator.storage.estimate().then(est=>{
+      const cur=document.getElementById('storageDiagnostic');if(!cur)return;
+      const usedMB=((est.usage||0)/1048576).toFixed(2),quotaMB=((est.quota||0)/1048576).toFixed(1);
+      cur.innerHTML+='<p style="color:#9297a3;margin-top:8px">Estimación del navegador para todo el sitio: '+usedMB+' MB usados de '+quotaMB+' MB disponibles.</p>';
+    }).catch(()=>{});
+  }
+}
 function runWorldIntegrity(){
   const issues=[], ids=new Set(),codes=new Map(),names=new Map();
   db.forEach(x=>{
@@ -1675,9 +1704,14 @@ setTimeout(()=>{initTagInput();initGlobalSearch();initDetailMore();renderTagChip
 
 
 migrateLegacySingleWorld();
-if(getCurrentWorldId()&&getWorldRegistry().some(w=>w.id===getCurrentWorldId())){
+let __startWorldId=getCurrentWorldId();
+const __registry=getWorldRegistry();
+if((!__startWorldId||!__registry.some(w=>w.id===__startWorldId))&&__registry.length===1){
+  __startWorldId=__registry[0].id;setCurrentWorldId(__startWorldId);
+}
+if(__startWorldId&&__registry.some(w=>w.id===__startWorldId)){
   document.getElementById('worldGate').classList.remove('show');
-  applyAccentColor((getWorldRegistry().find(w=>w.id===getCurrentWorldId())||{}).color);
+  applyAccentColor((__registry.find(w=>w.id===__startWorldId)||{}).color);
   loadState();loadCover();initTagInput();renderTagChips();initGlobalSearch();render();renderHistory();
   updateWorldBranding();
 }else{
