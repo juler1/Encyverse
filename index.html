@@ -382,15 +382,23 @@ const categoryFields={
 
 const sikuMemoryStore=window.__sikuMemoryStore||{}; window.__sikuMemoryStore=sikuMemoryStore;
 let sikuStorageAvailable=null;
+let sikuLastStorageError=null;
 function storageGet(key){try{return localStorage.getItem(key)}catch(e){return Object.prototype.hasOwnProperty.call(sikuMemoryStore,key)?sikuMemoryStore[key]:null}}
 function storageSet(key,value){
   for(let attempt=0;attempt<2;attempt++){
-    try{localStorage.setItem(key,value);sikuStorageAvailable=true;return true}
-    catch(e){if(attempt===1){sikuMemoryStore[key]=String(value);sikuStorageAvailable=false;return false}}
+    try{localStorage.setItem(key,value);sikuStorageAvailable=true;sikuLastStorageError=null;return true}
+    catch(e){
+      console.error('storageSet falló para la clave',key,e);
+      sikuLastStorageError=(e&&(e.name+': '+e.message))||String(e);
+      if(attempt===1){sikuMemoryStore[key]=String(value);sikuStorageAvailable=false;return false}
+    }
   }
 }
 function storageRemove(key){try{localStorage.removeItem(key)}catch(e){} delete sikuMemoryStore[key]}
-function storageStatus(){try{localStorage.setItem('__siku_test','1');localStorage.removeItem('__siku_test');return true}catch(e){return false}}
+function storageStatus(){
+  try{localStorage.setItem('__siku_test','1');localStorage.removeItem('__siku_test');return true}
+  catch(e){console.error('storageStatus falló:',e);sikuLastStorageError=(e&&(e.name+': '+e.message))||String(e);return false}
+}
 function readJSON(key,fallback){try{return JSON.parse(storageGet(key)||JSON.stringify(fallback))}catch(e){return fallback}}
 function normalizePhotoTagsAfterLoad(){
   const validIds=new Set(db.map(x=>x.id));
@@ -435,7 +443,7 @@ function save(){
    const persisted=storageSet(DB_KEY(),payload);
    persistWorld();
    if(!persisted){
-     alert('⚠️ No se ha podido guardar en el almacenamiento del navegador (posiblemente esté lleno o en modo incógnito). Los cambios solo existen en esta sesión y se PERDERÁN al recargar o cerrar la página. Exporta una copia de seguridad ahora mismo, o libera espacio/reduce el tamaño de las imágenes.');
+     alert('⚠️ No se ha podido guardar en el almacenamiento del navegador (posiblemente esté lleno o en modo incógnito). Los cambios solo existen en esta sesión y se PERDERÁN al recargar o cerrar la página. Exporta una copia de seguridad ahora mismo, o libera espacio/reduce el tamaño de las imágenes.\n\nDetalle técnico: '+(sikuLastStorageError||'desconocido'));
      return false;
    }
    const check=storageGet(DB_KEY());
@@ -1723,8 +1731,10 @@ if(__startWorldId&&__registry.some(w=>w.id===__startWorldId)){
 if(!storageStatus()){
   setTimeout(()=>{
     const n=document.createElement('div'); n.style.cssText='position:fixed;bottom:14px;left:14px;right:14px;z-index:99999;background:#332b1b;color:#f4e8c1;border:1px solid #8a6d2d;border-radius:12px;padding:10px 14px;font-size:13px;box-shadow:0 8px 30px rgba(0,0,0,.35)';
-    n.innerHTML='⚠️ Chrome no permite almacenamiento persistente en este modo de archivo. La ficha se puede guardar durante esta sesión, pero para conservarla al recargar usa la carpeta de backups o abre la aplicación desde un origen local.';
-    document.body.appendChild(n); setTimeout(()=>n.remove(),9000);
+    n.innerHTML='⚠️ Este navegador está bloqueando el almacenamiento persistente para esta página (no es un límite de espacio: no deja guardar nada). Las fichas solo existirán durante esta sesión y se perderán al recargar o cerrar. Revisa los permisos de "Cookies y datos del sitio" del navegador, o prueba en otro navegador.'+
+      '<br><br><small>Detalle técnico: '+esc(String(sikuLastStorageError||'desconocido'))+'</small>'+
+      '<div style="text-align:right;margin-top:8px"><button type="button" onclick="this.closest(\'div\').parentElement.remove()" style="background:none;border:1px solid #8a6d2d;color:#f4e8c1;border-radius:8px;padding:6px 10px">Cerrar</button></div>';
+    document.body.appendChild(n);
   },300);
 }
 
