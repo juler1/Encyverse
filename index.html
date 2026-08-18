@@ -381,7 +381,12 @@ const categoryFields={
 const sikuMemoryStore=window.__sikuMemoryStore||{}; window.__sikuMemoryStore=sikuMemoryStore;
 let sikuStorageAvailable=null;
 function storageGet(key){try{return localStorage.getItem(key)}catch(e){return Object.prototype.hasOwnProperty.call(sikuMemoryStore,key)?sikuMemoryStore[key]:null}}
-function storageSet(key,value){try{localStorage.setItem(key,value);sikuStorageAvailable=true;return true}catch(e){sikuMemoryStore[key]=String(value);sikuStorageAvailable=false;return false}}
+function storageSet(key,value){
+  for(let attempt=0;attempt<2;attempt++){
+    try{localStorage.setItem(key,value);sikuStorageAvailable=true;return true}
+    catch(e){if(attempt===1){sikuMemoryStore[key]=String(value);sikuStorageAvailable=false;return false}}
+  }
+}
 function storageRemove(key){try{localStorage.removeItem(key)}catch(e){} delete sikuMemoryStore[key]}
 function storageStatus(){try{localStorage.setItem('__siku_test','1');localStorage.removeItem('__siku_test');return true}catch(e){return false}}
 function readJSON(key,fallback){try{return JSON.parse(storageGet(key)||JSON.stringify(fallback))}catch(e){return fallback}}
