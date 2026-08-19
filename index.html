@@ -441,9 +441,10 @@ function save(){
  const payload=JSON.stringify(db);
  try{
    const persisted=storageSet(DB_KEY(),payload);
+   const dbSaveError=sikuLastStorageError;
    persistWorld();
    if(!persisted){
-     alert('⚠️ No se ha podido guardar en el almacenamiento del navegador (posiblemente esté lleno o en modo incógnito). Los cambios solo existen en esta sesión y se PERDERÁN al recargar o cerrar la página. Exporta una copia de seguridad ahora mismo, o libera espacio/reduce el tamaño de las imágenes.\n\nDetalle técnico: '+(sikuLastStorageError||'desconocido'));
+     alert('⚠️ No se ha podido guardar en el almacenamiento del navegador (posiblemente esté lleno o en modo incógnito). Los cambios solo existen en esta sesión y se PERDERÁN al recargar o cerrar la página. Exporta una copia de seguridad ahora mismo, o libera espacio/reduce el tamaño de las imágenes.\n\nDetalle técnico: '+(dbSaveError||'desconocido')+'\n\nTamaño de los datos: '+(payload.length/1048576).toFixed(2)+' MB');
      return false;
    }
    const check=storageGet(DB_KEY());
