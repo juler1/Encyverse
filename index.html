@@ -1,4 +1,4 @@
-<!doctype html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EncyVerse</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&display=swap" rel="stylesheet"><style>
+<!doctype html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EncyVerse</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0d0f14"><link rel="icon" href="icons/icon-192.png" type="image/png"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="EncyVerse"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&display=swap" rel="stylesheet"><style>
 :root{--accent:#d8b36a;--accent-33:#d8b36a33;--accent-55:#d8b36a55;--accent-border:#d8b36a55}
 .logo,.hero h1,h2,.tag{font-family:'Cinzel',Georgia,serif}
 *{box-sizing:border-box}body{margin:0;background:#0d0f14;color:#fff;font-family:Arial,sans-serif}header{height:64px;position:sticky;top:0;z-index:10;background:#151821;border-bottom:1px solid #292d38;display:flex;align-items:center;justify-content:space-between;padding:0 16px}.logo{font-weight:bold;font-size:19px}.logo span,button.active{color:var(--accent)}.nav-wrap{position:sticky;top:64px;z-index:9;overflow:hidden}
@@ -107,7 +107,6 @@ nav{height:48px;display:flex;overflow-x:auto;background:#151821;border-bottom:1p
 .world-gate-color::-webkit-color-swatch-wrapper{padding:0}
 .world-gate-color::-webkit-color-swatch{border:0;border-radius:50%}
 .world-gate-color::-moz-color-swatch{border:0;border-radius:50%}
-</style>
 </style>
 
 <style id="photo-tag-picker-css">.photo-tag-picker{margin:10px 0 14px;padding:12px;background:#171a22;border:1px solid #3a3f4a;border-radius:12px}.photo-tag-picker-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.photo-tag-picker-controls{display:flex;gap:10px;align-items:end}.photo-tag-picker-controls label{display:grid;gap:5px;font-size:11px;color:#9297a3;min-width:180px}.photo-tag-picker-controls select{padding:10px;border-radius:8px;border:1px solid #343945;background:#0f1218;color:#fff;width:100%}.photo-tag-picker-nav{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}.photo-tag-picker-actions{margin-top:10px}@media(max-width:650px){.photo-tag-picker-controls{flex-direction:column;align-items:stretch}.photo-tag-picker-controls label{min-width:0}.photo-tag-picker-nav{flex-wrap:wrap}.photo-tag-picker-nav span{order:-1;width:100%;text-align:center}}.gallery-photo-wrap{position:relative}.gallery-photo-wrap.tag-mode{cursor:crosshair}.gallery-photo-wrap.tag-mode img{cursor:crosshair}.tagged-result-photo img{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px}
@@ -383,22 +382,107 @@ const categoryFields={
 const sikuMemoryStore=window.__sikuMemoryStore||{}; window.__sikuMemoryStore=sikuMemoryStore;
 let sikuStorageAvailable=null;
 let sikuLastStorageError=null;
-function storageGet(key){try{return localStorage.getItem(key)}catch(e){return Object.prototype.hasOwnProperty.call(sikuMemoryStore,key)?sikuMemoryStore[key]:null}}
-function storageSet(key,value){
-  for(let attempt=0;attempt<2;attempt++){
-    try{localStorage.setItem(key,value);sikuStorageAvailable=true;sikuLastStorageError=null;return true}
-    catch(e){
-      console.error('storageSet falló para la clave',key,e);
-      sikuLastStorageError=(e&&(e.name+': '+e.message))||String(e);
-      if(attempt===1){sikuMemoryStore[key]=String(value);sikuStorageAvailable=false;return false}
+
+/* ===== Almacenamiento respaldado por IndexedDB =====
+   IndexedDB permite guardar muchísimos más datos que localStorage (que suele
+   limitarse a 5-10 MB por sitio). Para no tener que reescribir toda la app en
+   asíncrono, se mantiene una caché en memoria (idbCache) que se lee/escribe de
+   forma síncrona como antes, y por debajo se persiste en IndexedDB en segundo
+   plano. Al arrancar, se migra automáticamente cualquier dato que hubiera en
+   localStorage de una versión anterior de la app. */
+const IDB_NAME='encyverse_kv', IDB_STORE='kv', IDB_VERSION=1;
+let idbDBHandle=null, idbCache=Object.create(null), idbCacheReady=false;
+function idbOpen(){
+  return new Promise((resolve,reject)=>{
+    if(idbDBHandle){resolve(idbDBHandle);return;}
+    if(!('indexedDB' in window)){reject(new Error('IndexedDB no disponible en este navegador'));return;}
+    let req;
+    try{req=indexedDB.open(IDB_NAME,IDB_VERSION)}catch(e){reject(e);return}
+    req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(IDB_STORE))db.createObjectStore(IDB_STORE)};
+    req.onsuccess=()=>{idbDBHandle=req.result;resolve(idbDBHandle)};
+    req.onerror=()=>reject(req.error);
+    req.onblocked=()=>reject(new Error('IndexedDB bloqueada (otra pestaña abierta con una versión distinta)'));
+  });
+}
+function idbGetAll(){
+  return idbOpen().then(db=>new Promise((resolve,reject)=>{
+    const out={};
+    let tx;
+    try{tx=db.transaction(IDB_STORE,'readonly')}catch(e){reject(e);return}
+    const req=tx.objectStore(IDB_STORE).openCursor();
+    req.onsuccess=()=>{const cur=req.result;if(cur){out[cur.key]=cur.value;cur.continue()}else resolve(out)};
+    req.onerror=()=>reject(req.error);
+  }));
+}
+function idbPut(key,value){
+  return idbOpen().then(db=>new Promise((resolve,reject)=>{
+    let tx;
+    try{tx=db.transaction(IDB_STORE,'readwrite')}catch(e){reject(e);return}
+    tx.objectStore(IDB_STORE).put(value,key);
+    tx.oncomplete=()=>resolve(true);
+    tx.onerror=()=>reject(tx.error);
+    tx.onabort=()=>reject(tx.error||new Error('Transacción de IndexedDB abortada'));
+  }));
+}
+function idbDelete(key){
+  return idbOpen().then(db=>new Promise((resolve,reject)=>{
+    let tx;
+    try{tx=db.transaction(IDB_STORE,'readwrite')}catch(e){reject(e);return}
+    tx.objectStore(IDB_STORE).delete(key);
+    tx.oncomplete=()=>resolve(true);
+    tx.onerror=()=>reject(tx.error);
+  }));
+}
+/* Se ejecuta una vez al arrancar, antes de cargar el mundo. Si IndexedDB ya
+   tiene datos, se usan tal cual. Si está vacía (primera vez con esta versión),
+   se copia todo lo que hubiera en localStorage para no perder nada. */
+async function hydrateStorageCache(){
+  try{
+    const all=await idbGetAll();
+    if(Object.keys(all).length>0){
+      idbCache=all;idbCacheReady=true;sikuStorageAvailable=true;sikuLastStorageError=null;
+      return;
     }
+    const migrated={};
+    try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);migrated[k]=localStorage.getItem(k)}}catch(e){}
+    idbCache=migrated;idbCacheReady=true;sikuStorageAvailable=true;sikuLastStorageError=null;
+    await Promise.all(Object.keys(migrated).map(k=>idbPut(k,migrated[k]).catch(e=>console.error('No se pudo migrar la clave',k,'a IndexedDB:',e))));
+  }catch(e){
+    console.error('No se pudo inicializar IndexedDB, usando memoria temporal (los datos no sobrevivirán a recargar la página):',e);
+    idbCache=Object.create(null);idbCacheReady=false;sikuStorageAvailable=false;
+    sikuLastStorageError=(e&&(e.name+': '+e.message))||String(e);
   }
 }
-function storageRemove(key){try{localStorage.removeItem(key)}catch(e){} delete sikuMemoryStore[key]}
-function storageStatus(){
-  try{localStorage.setItem('__siku_test','1');localStorage.removeItem('__siku_test');return true}
-  catch(e){console.error('storageStatus falló:',e);sikuLastStorageError=(e&&(e.name+': '+e.message))||String(e);return false}
+function storageGet(key){return Object.prototype.hasOwnProperty.call(idbCache,key)?idbCache[key]:null}
+/* Claves cuya escritura en IndexedDB todavía no se ha confirmado (o ha fallado
+   tras reintentar). Mientras esto no esté vacío, lo que ves en pantalla podría
+   NO estar realmente guardado en el dispositivo todavía. */
+const sikuUnpersistedKeys=new Set();
+function storageSet(key,value){
+  const v=String(value);
+  idbCache[key]=v;
+  sikuUnpersistedKeys.add(key);
+  const attempt=(n)=>idbPut(key,v).then(()=>{
+    sikuUnpersistedKeys.delete(key);
+    sikuLastStorageError=null;
+  }).catch(e=>{
+    if(n<2){return attempt(n+1);} // un reintento automático antes de rendirse
+    console.error('storageSet (IndexedDB) falló para la clave',key,'tras reintentar:',e);
+    sikuLastStorageError=(e&&(e.name+': '+e.message))||String(e);
+    setTimeout(()=>{alert('⚠️ El dato se ve en pantalla, pero NO se ha podido guardar de forma permanente en el dispositivo (IndexedDB falló dos veces). Exporta una copia de seguridad ahora mismo, no cierres ni recargues la página todavía.\n\nDetalle técnico: '+sikuLastStorageError);},50);
+  });
+  attempt(0);
+  return true;
 }
+function storageRemove(key){delete idbCache[key];sikuUnpersistedKeys.delete(key);idbDelete(key).catch(e=>console.error('storageRemove (IndexedDB) falló para la clave',key,e))}
+function storageStatus(){return !!(idbCacheReady&&window.indexedDB)}
+window.addEventListener('beforeunload',(e)=>{
+  if(sikuUnpersistedKeys.size>0){
+    e.preventDefault();
+    e.returnValue='Hay cambios que todavía no se han terminado de guardar en el dispositivo. Si sales ahora podrías perderlos.';
+    return e.returnValue;
+  }
+});
 function readJSON(key,fallback){try{return JSON.parse(storageGet(key)||JSON.stringify(fallback))}catch(e){return fallback}}
 function normalizePhotoTagsAfterLoad(){
   const validIds=new Set(db.map(x=>x.id));
@@ -622,7 +706,7 @@ function ensureEntryNumbers(skipSave=false){const counters={};let changed=false;
 
 function newEntry(c=activeCategory||'Personajes'){setEditingTags([]);initTagInput();editImageState={image:'',gallery:[]};editImageTags={};detailModal.classList.remove('show');entryModal.classList.add('show');mtitle.textContent='Nueva entrada';eid.value='';name.value='';short.value='';content.value='';tags.value='';mainImage.value='';galleryFiles.value='';cat.innerHTML=cats.map(x=>'<option>'+esc(x)+'</option>').join('');cat.value=c;loadRelationRows([]);updateSubcategoryOptions();renderGalleryEditor(null)}
 function closeEntry(){entryModal.classList.remove('show')}
-const IMG_MAX_DIM=1600, IMG_JPEG_QUALITY=0.82;
+const IMG_MAX_DIM=1440, IMG_JPEG_QUALITY=0.75;
 function read(f,cb){
   const r=new FileReader();
   r.onerror=()=>alert('No se pudo leer la imagen.');
@@ -631,15 +715,16 @@ function read(f,cb){
     const img=new Image();
     img.onload=()=>{
       const w=img.naturalWidth,h=img.naturalHeight;
-      if(!w||!h||(w<=IMG_MAX_DIM&&h<=IMG_MAX_DIM)){cb(dataUrl);return;}
+      if(!w||!h){cb(dataUrl);return;}
       try{
-        const scale=Math.min(IMG_MAX_DIM/w,IMG_MAX_DIM/h);
+        const scale=Math.min(1,IMG_MAX_DIM/w,IMG_MAX_DIM/h);
         const nw=Math.max(1,Math.round(w*scale)),nh=Math.max(1,Math.round(h*scale));
         const canvas=document.createElement('canvas');canvas.width=nw;canvas.height=nh;
         const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,nw,nh);
-        const isPng=/^image\/png/i.test(f.type||'');
-        const out=isPng?canvas.toDataURL('image/png'):canvas.toDataURL('image/jpeg',IMG_JPEG_QUALITY);
-        cb(out);
+        // Siempre se recomprime a JPEG (incluso si el archivo ya era pequeño en píxeles o era PNG),
+        // porque el peso del archivo original puede ser grande aunque las dimensiones no lo sean.
+        const out=canvas.toDataURL('image/jpeg',IMG_JPEG_QUALITY);
+        cb(out.length<dataUrl.length?out:dataUrl);
       }catch(e){cb(dataUrl);}
     };
     img.onerror=()=>cb(dataUrl);
@@ -1633,16 +1718,16 @@ function renderStorageDiagnostic(){
   const keys=[['Fichas (db)','siku_db::'+id],['Subcategorías','siku_subcats::'+id],['Mundo/ajustes (incluye mapas)','siku_world::'+id],['Backups','siku_backups::'+id]];
   let rows='',worldTotal=0,grandTotal=0;
   keys.forEach(([label,k])=>{
-    const v=localStorage.getItem(k)||'';
+    const v=storageGet(k)||'';
     const kb=(v.length/1024);
     worldTotal+=v.length;
     rows+='<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #23283380"><span>'+esc(label)+'</span><b>'+kb.toFixed(1)+' KB</b></div>';
   });
-  for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);grandTotal+=(localStorage.getItem(k)||'').length;}
+  Object.keys(idbCache).forEach(k=>{grandTotal+=(idbCache[k]||'').length;});
   const otherWorlds=grandTotal-worldTotal;
   let html='<div class="stat" style="padding:14px">'+
     '<b>Este mundo:</b> '+(worldTotal/1024).toFixed(1)+' KB<br>'+rows+
-    '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #292d38"><b>Total en el navegador (todos los mundos):</b> '+(grandTotal/1024).toFixed(1)+' KB'+
+    '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #292d38"><b>Total guardado (todos los mundos):</b> '+(grandTotal/1024).toFixed(1)+' KB'+
     (otherWorlds>0?' <span style="color:#9297a3">(otros mundos: '+(otherWorlds/1024).toFixed(1)+' KB)</span>':'')+
     '</div></div>';
   box.innerHTML=html;
@@ -1650,7 +1735,7 @@ function renderStorageDiagnostic(){
     navigator.storage.estimate().then(est=>{
       const cur=document.getElementById('storageDiagnostic');if(!cur)return;
       const usedMB=((est.usage||0)/1048576).toFixed(2),quotaMB=((est.quota||0)/1048576).toFixed(1);
-      cur.innerHTML+='<p style="color:#9297a3;margin-top:8px">Estimación del navegador para todo el sitio: '+usedMB+' MB usados de '+quotaMB+' MB disponibles.</p>';
+      cur.innerHTML+='<p style="color:#9297a3;margin-top:8px">Estimación del navegador para todo el sitio (IndexedDB): '+usedMB+' MB usados de '+quotaMB+' MB disponibles.</p>';
     }).catch(()=>{});
   }
 }
@@ -1712,32 +1797,39 @@ setTimeout(()=>{document.querySelector('header button[onclick="googleLogin()"]')
 setTimeout(()=>{initTagInput();initGlobalSearch();initDetailMore();renderTagChips();initGalleryFileInputs();},0);
 
 
-migrateLegacySingleWorld();
-let __startWorldId=getCurrentWorldId();
-const __registry=getWorldRegistry();
-if((!__startWorldId||!__registry.some(w=>w.id===__startWorldId))&&__registry.length===1){
-  __startWorldId=__registry[0].id;setCurrentWorldId(__startWorldId);
-}
-if(__startWorldId&&__registry.some(w=>w.id===__startWorldId)){
-  document.getElementById('worldGate').classList.remove('show');
-  applyAccentColor((__registry.find(w=>w.id===__startWorldId)||{}).color);
-  loadState();loadCover();initTagInput();renderTagChips();initGlobalSearch();render();renderHistory();
-  updateWorldBranding();
-}else{
-  setCurrentWorldId('');
-  applyAccentColor(DEFAULT_ACCENT);
-  initTagInput();initGlobalSearch();
-  renderWorldGate();
-}
-if(!storageStatus()){
-  setTimeout(()=>{
-    const n=document.createElement('div'); n.style.cssText='position:fixed;bottom:14px;left:14px;right:14px;z-index:99999;background:#332b1b;color:#f4e8c1;border:1px solid #8a6d2d;border-radius:12px;padding:10px 14px;font-size:13px;box-shadow:0 8px 30px rgba(0,0,0,.35)';
-    n.innerHTML='⚠️ Este navegador está bloqueando el almacenamiento persistente para esta página (no es un límite de espacio: no deja guardar nada). Las fichas solo existirán durante esta sesión y se perderán al recargar o cerrar. Revisa los permisos de "Cookies y datos del sitio" del navegador, o prueba en otro navegador.'+
-      '<br><br><small>Detalle técnico: '+esc(String(sikuLastStorageError||'desconocido'))+'</small>'+
-      '<div style="text-align:right;margin-top:8px"><button type="button" onclick="this.closest(\'div\').parentElement.remove()" style="background:none;border:1px solid #8a6d2d;color:#f4e8c1;border-radius:8px;padding:6px 10px">Cerrar</button></div>';
-    document.body.appendChild(n);
-  },300);
-}
-
-initBackupFolder();
+(async function boot(){
+  if('serviceWorker' in navigator){
+    window.addEventListener('load',()=>{
+      navigator.serviceWorker.register('sw.js').catch(e=>console.warn('No se pudo registrar el service worker (la app seguirá funcionando normal, solo sin modo offline):',e));
+    });
+  }
+  await hydrateStorageCache();
+  migrateLegacySingleWorld();
+  let __startWorldId=getCurrentWorldId();
+  const __registry=getWorldRegistry();
+  if((!__startWorldId||!__registry.some(w=>w.id===__startWorldId))&&__registry.length===1){
+    __startWorldId=__registry[0].id;setCurrentWorldId(__startWorldId);
+  }
+  if(__startWorldId&&__registry.some(w=>w.id===__startWorldId)){
+    document.getElementById('worldGate').classList.remove('show');
+    applyAccentColor((__registry.find(w=>w.id===__startWorldId)||{}).color);
+    loadState();loadCover();initTagInput();renderTagChips();initGlobalSearch();render();renderHistory();
+    updateWorldBranding();
+  }else{
+    setCurrentWorldId('');
+    applyAccentColor(DEFAULT_ACCENT);
+    initTagInput();initGlobalSearch();
+    renderWorldGate();
+  }
+  if(!storageStatus()){
+    setTimeout(()=>{
+      const n=document.createElement('div'); n.style.cssText='position:fixed;bottom:14px;left:14px;right:14px;z-index:99999;background:#332b1b;color:#f4e8c1;border:1px solid #8a6d2d;border-radius:12px;padding:10px 14px;font-size:13px;box-shadow:0 8px 30px rgba(0,0,0,.35)';
+      n.innerHTML='⚠️ Este navegador está bloqueando el almacenamiento persistente para esta página (no es un límite de espacio: no deja guardar nada). Las fichas solo existirán durante esta sesión y se perderán al recargar o cerrar. Revisa los permisos de "Cookies y datos del sitio" del navegador, o prueba en otro navegador.'+
+        '<br><br><small>Detalle técnico: '+esc(String(sikuLastStorageError||'desconocido'))+'</small>'+
+        '<div style="text-align:right;margin-top:8px"><button type="button" onclick="this.closest(\'div\').parentElement.remove()" style="background:none;border:1px solid #8a6d2d;color:#f4e8c1;border-radius:8px;padding:6px 10px">Cerrar</button></div>';
+      document.body.appendChild(n);
+    },300);
+  }
+  initBackupFolder();
+})();
 </script><div id="lightbox" class="lightbox" onclick="closeLightbox()"><img id="lightboxImg"></div></body></html>
