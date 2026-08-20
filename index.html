@@ -9,7 +9,7 @@ nav{height:48px;display:flex;overflow-x:auto;background:#151821;border-bottom:1p
 .form select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239297a3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:16px;padding-right:36px}
 .form label{display:grid;gap:6px;font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:1px;font-weight:bold}
 #structuredFields{display:grid;gap:12px}
-#structuredFields h3{margin:6px 0 0}.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.stat,.empty{background:#171a22;border:1px solid #292d38;border-radius:12px}.card{background:#171a22;border:1px solid var(--accent-border);border-radius:12px}.stat{padding:15px}.stat b{display:block;font-size:24px}.stat span{color:#9297a3;font-size:12px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.rows{display:flex;gap:12px;overflow-x:auto}.card{overflow:hidden;cursor:pointer}.card img{width:100%;height:190px;object-fit:cover}.card div{padding:10px}.card h3{margin:0 0 4px;font-size:15px}.card small{color:#9297a3}.empty{padding:30px;text-align:center;color:#9297a3}.modal{display:none;position:fixed;inset:0;background:#000b;z-index:2000;align-items:flex-end}.modal.show{display:flex}.box{width:100%;max-width:720px;max-height:92vh;overflow:auto;background:#151821;border-radius:18px 18px 0 0;padding:20px}.head{display:flex;justify-content:space-between}.head button{background:none;color:#fff;border:0;font-size:24px}.form{display:grid;gap:12px}.gallery{display:grid;grid-template-columns:repeat(3,minmax(105px,1fr));gap:12px;margin-top:12px}.gallery img{width:100%;aspect-ratio:1/0.82;object-fit:cover;border-radius:10px;cursor:pointer;transition:transform .15s}.gallery img:active{transform:scale(.97)}
+#structuredFields h3{margin:6px 0 0}.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.stat,.empty{background:#171a22;border:1px solid #292d38;border-radius:12px}.card{background:#171a22;border:1px solid var(--accent-border);border-radius:12px}.stat{padding:15px}.stat b{display:block;font-size:24px}.stat span{color:#9297a3;font-size:12px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.rows{display:flex;gap:12px;overflow-x:auto}.card{overflow:hidden;cursor:pointer}.card img{width:100%;height:190px;object-fit:cover;object-position:center 20%}.card div{padding:10px}.card h3{margin:0 0 4px;font-size:15px}.card small{color:#9297a3}.empty{padding:30px;text-align:center;color:#9297a3}.modal{display:none;position:fixed;inset:0;background:#000b;z-index:2000;align-items:flex-end}.modal.show{display:flex}.box{width:100%;max-width:720px;max-height:92vh;overflow:auto;background:#151821;border-radius:18px 18px 0 0;padding:20px}.head{display:flex;justify-content:space-between}.head button{background:none;color:#fff;border:0;font-size:24px}.form{display:grid;gap:12px}.gallery{display:grid;grid-template-columns:repeat(3,minmax(105px,1fr));gap:12px;margin-top:12px}.gallery img{width:100%;aspect-ratio:1/0.82;object-fit:cover;border-radius:10px;cursor:pointer;transition:transform .15s}.gallery img:active{transform:scale(.97)}
 .primary:active,.secondary:active,.gold:active{transform:scale(.96);opacity:.9}
 .card:active{transform:scale(.98)}
 .fab:active{transform:scale(.93)}
@@ -41,9 +41,9 @@ nav{height:48px;display:flex;overflow-x:auto;background:#151821;border-bottom:1p
 .chips{display:flex;gap:7px;flex-wrap:wrap}
 .chip{display:inline-block;padding:5px 9px;border-radius:14px;background:#292e38;color:#e4e6eb;font-size:12px}
 .hero-card{display:grid;grid-template-columns:minmax(130px,220px) 1fr;gap:18px;align-items:center}
-.hero-card img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:16px;background:#171a21}
+.hero-card img{width:100%;aspect-ratio:1;object-fit:cover;object-position:center 20%;border-radius:16px;background:#171a21}
 .detail-hero{display:grid;grid-template-columns:170px 1fr;gap:20px;align-items:start}
-.detail-hero img{width:170px;height:210px;object-fit:cover;border-radius:18px}
+.detail-hero img{width:170px;height:210px;object-fit:cover;object-position:center 20%;border-radius:18px}
 .filters{display:flex;gap:8px;overflow-x:auto;padding:8px 0;scrollbar-width:none}
 .filters::-webkit-scrollbar{display:none}
 .filters select,.filters input{min-width:145px}
@@ -158,7 +158,7 @@ nav{height:48px;display:flex;overflow-x:auto;background:#151821;border-bottom:1p
 <section id="favoritos" class="screen"><div class="page"><h1>⭐ Favoritos</h1><div id="favorites" class="grid"></div></div></section>
 <section id="recientes" class="screen"><div class="page"><h1>🕘 Recientes</h1><div id="recentGrid" class="grid"></div></div></section>
 </main>
-<div id="entryModal" class="modal"><div class="box"><div class="head"><h2 id="mtitle">Nueva entrada</h2><button onclick="closeEntry()">×</button></div><form class="form" onsubmit="saveEntry(event)"><input type="hidden" id="eid"><label>Nombre<input id="name" required></label><label>Categoría<select id="cat" onchange="updateSubcategoryOptions()"></select></label>
+<div id="entryModal" class="modal"><div class="box"><div class="head" style="position:sticky;top:0;background:#151821;z-index:5;padding-bottom:10px;margin-bottom:4px"><h2 id="mtitle">Nueva entrada</h2><div class="actions" style="gap:8px"><button type="button" class="gold" id="saveEntryBtn">💾 Guardar</button><button onclick="closeEntry()">×</button></div></div><form class="form" onsubmit="saveEntry(event)"><input type="hidden" id="eid"><label>Nombre<input id="name" required></label><label>Categoría<select id="cat" onchange="updateSubcategoryOptions()"></select></label>
 <label>Subcategoría / raza<select id="subcat"></select></label>
 <label>Descripción breve<input id="short"></label><label>Contenido completo<textarea id="content"></textarea></label><div id="structuredFields"></div><p style="color:#9297a3;font-size:12px">Los campos cambian según la categoría.</p>
 <div id="relationsEditor" class="empty" style="padding:12px;text-align:left">
@@ -180,7 +180,7 @@ nav{height:48px;display:flex;overflow-x:auto;background:#151821;border-bottom:1p
     <button type="button" class="gold" onclick="addSubcategory()">＋</button>
   </div>
   <div id="subcatList" style="margin-top:8px"></div>
-</div><label>Imagen principal<input id="mainImage" type="file" accept="image/*"></label><label>Galería de imágenes · Añadir imágenes<input id="galleryFiles" type="file" accept="image/*" multiple></label><div id="galleryEditor" class="gallery-grid"></div><div class="actions"><button type="button" class="gold" id="saveEntryBtn">💾 Guardar</button><button type="button" class="secondary" onclick="closeEntry()">Cancelar</button></div></form></div></div>
+</div><label>Imagen principal<input id="mainImage" type="file" accept="image/*"></label><label>Galería de imágenes · Añadir imágenes<input id="galleryFiles" type="file" accept="image/*" multiple></label><div id="galleryEditor" class="gallery-grid"></div><div class="actions"><button type="button" class="secondary" onclick="closeEntry()">Cancelar</button></div></form></div></div>
 
 <section id="herramientas" class="screen"><div class="page">
 <h1>🧪 Integridad del mundo</h1>
@@ -208,10 +208,11 @@ nav{height:48px;display:flex;overflow-x:auto;background:#151821;border-bottom:1p
 <section id="grafo" class="screen"><div class="page">
 <h1>🕸️ Grafo de relaciones</h1>
 <div class="filters">
+<select id="graphRootSelect" onchange="renderGraph(this.value||undefined)"><option value="">Elige una ficha para centrar el grafo…</option></select>
 <select id="graphFilter" onchange="renderGraph()"><option value="all">Todas las relaciones</option><option value="family">Familia</option><option value="friend">Amigos / aliados</option><option value="conflict">Rivales / enemigos</option><option value="mentor">Mentoría</option><option value="other">Otras</option></select>
 <select id="graphDepth" onchange="renderGraph()"><option value="1">Profundidad 1</option><option value="2">Profundidad 2</option></select>
 </div>
-<div id="graphRoot" class="graph-wrap"><div class="empty">Abre una ficha y usa “Grafo” para centrarlo, o selecciona una ficha desde la lista.</div></div>
+<div id="graphRoot" class="graph-wrap"><div class="empty">Elige una ficha en el desplegable de arriba, o ábrela y usa “Grafo” para centrarla.</div></div>
 </div></section>
 <section id="historial" class="screen"><div class="page">
 <h1>🕘 Historial de cambios</h1>
@@ -329,7 +330,7 @@ function renderWorldGate(){
     '</div>'
   ).join('');
 }
-let db=[], subcats={}, settings={}, currentSnapshotVersion=SCHEMA, editImageState={image:'',gallery:[]}, editImageTags={};
+let db=[], subcats={}, settings={}, currentSnapshotVersion=SCHEMA, editImageState={image:'',gallery:[],imagePosition:20}, editImageTags={};
 
 const nav=document.getElementById('nav'),cover=document.getElementById('cover'),coverFile=document.getElementById('coverFile');
 const search=document.getElementById('search'),stats=document.getElementById('stats'),recentRow=document.getElementById('recentRow'),recentGrid=document.getElementById('recentGrid'),favorites=document.getElementById('favorites'),gallery=document.getElementById('gallery');
@@ -704,7 +705,7 @@ function prefixFor(c){return ({Personajes:'PER',Reinos:'REI',Lugares:'LUG',Organ
 function nextEntryNumber(c){const nums=db.filter(x=>x.category===c).map(x=>Number(x.number)||0);const n=(nums.length?Math.max(...nums):0)+1;return {number:n,code:prefixFor(c)+'-'+String(n).padStart(3,'0')}}
 function ensureEntryNumbers(skipSave=false){const counters={};let changed=false;db.forEach(x=>{if(!x.number){counters[x.category]=(counters[x.category]||db.filter(y=>y.category===x.category&&y.number).length)+1;x.number=counters[x.category];x.code=prefixFor(x.category)+'-'+String(x.number).padStart(3,'0');changed=true}else if(!x.code)x.code=prefixFor(x.category)+'-'+String(x.number).padStart(3,'0')});if(changed&&!skipSave)save()}
 
-function newEntry(c=activeCategory||'Personajes'){setEditingTags([]);initTagInput();editImageState={image:'',gallery:[]};editImageTags={};detailModal.classList.remove('show');entryModal.classList.add('show');mtitle.textContent='Nueva entrada';eid.value='';name.value='';short.value='';content.value='';tags.value='';mainImage.value='';galleryFiles.value='';cat.innerHTML=cats.map(x=>'<option>'+esc(x)+'</option>').join('');cat.value=c;loadRelationRows([]);updateSubcategoryOptions();renderGalleryEditor(null)}
+function newEntry(c=activeCategory||'Personajes'){setEditingTags([]);initTagInput();editImageState={image:'',gallery:[],imagePosition:20};editImageTags={};detailModal.classList.remove('show');entryModal.classList.add('show');mtitle.textContent='Nueva entrada';eid.value='';name.value='';short.value='';content.value='';tags.value='';mainImage.value='';galleryFiles.value='';cat.innerHTML=cats.map(x=>'<option>'+esc(x)+'</option>').join('');cat.value=c;loadRelationRows([]);updateSubcategoryOptions();renderGalleryEditor(null)}
 function closeEntry(){entryModal.classList.remove('show')}
 const IMG_MAX_DIM=1440, IMG_JPEG_QUALITY=0.75;
 function read(f,cb){
@@ -816,7 +817,7 @@ function editPhotoTagText(src,tagId){
 }
 function renderGalleryEditor(x){
   const el=document.getElementById('galleryEditor');if(!el)return;
-  if(x){editImageState={image:x.image||'',gallery:Array.isArray(x.gallery)?x.gallery.slice():[]};setEditPhotoTags(x);}
+  if(x){editImageState={image:x.image||'',gallery:Array.isArray(x.gallery)?x.gallery.slice():[],imagePosition:x.imagePosition??20};setEditPhotoTags(x);}
   const imgs=imageListFromState();
   el.innerHTML=imgs.length?imgs.map((src,i)=>{
     const records=normalizePhotoTagRecords(editImageTags[src]);
@@ -830,7 +831,9 @@ function renderGalleryEditor(x){
         if(t.type==='entity'){const p=db.find(z=>z.id===t.id&&!z.trashed);return p?'<span class="chip" style="margin:2px;display:inline-flex;align-items:center;gap:4px">🔗 '+esc(p.name)+(t.text?' <small style="color:#9297a3">· '+esc(t.text)+'</small>':'')+' <button type="button" style="border:0;background:none;color:#fff" onclick="editPhotoTagText('+JSON.stringify(src)+','+JSON.stringify(t.tagId)+');event.stopPropagation()">✎</button><button type="button" style="border:0;background:none;color:#fff" onclick="removePhotoTag('+JSON.stringify(src)+','+JSON.stringify(t.tagId)+');event.stopPropagation()">×</button></span>':'';}
         return '<span class="chip" style="margin:2px;display:inline-flex;align-items:center;gap:4px">📝 '+esc(t.text)+' <button type="button" style="border:0;background:none;color:#fff" onclick="editPhotoTagText('+JSON.stringify(src)+','+JSON.stringify(t.tagId)+');event.stopPropagation()">✎</button><button type="button" style="border:0;background:none;color:#fff" onclick="removePhotoTag('+JSON.stringify(src)+','+JSON.stringify(t.tagId)+');event.stopPropagation()">×</button></span>';
       }).join(''):'Sin etiquetas')+'</div>'+
-      '<div style="margin-top:7px;font-size:12px;color:var(--accent)">👆 Toca cualquier punto de la imagen para elegir dónde colocar la etiqueta.</div><div class="actions" style="margin-top:6px;flex-wrap:wrap"><button type="button" class="secondary" onclick="makeMainImage('+i+')">'+(i===0?'★ Principal':'☆ Principal')+'</button><button type="button" class="gold" onclick="tagPhotoFromEditor('+i+')">🏷 Etiquetar en el centro</button><button type="button" class="secondary" onclick="removeExistingImage('+i+')">🗑</button></div></div>';
+      '<div style="margin-top:7px;font-size:12px;color:var(--accent)">👆 Toca cualquier punto de la imagen para elegir dónde colocar la etiqueta.</div>'+
+      (i===0?'<div style="margin-top:10px;padding-top:10px;border-top:1px solid #292d38"><label style="display:flex;align-items:center;gap:10px;font-size:12px;color:#9297a3">🖼️ Encuadre en las miniaturas (evita que se corte la cabeza)<img id="imgFramingPreview" src="'+esc(src)+'" style="width:46px;height:46px;object-fit:cover;object-position:50% '+(editImageState.imagePosition??20)+'%;border-radius:8px;flex-shrink:0;margin-left:auto"></label><input type="range" min="0" max="100" value="'+(editImageState.imagePosition??20)+'" style="width:100%;margin-top:6px" oninput="editImageState.imagePosition=Number(this.value);const p=document.getElementById(\'imgFramingPreview\');if(p)p.style.objectPosition=\'50% \'+this.value+\'%\'"></div>':'')+
+      '<div class="actions" style="margin-top:6px;flex-wrap:wrap"><button type="button" class="secondary" onclick="makeMainImage('+i+')">'+(i===0?'★ Principal':'☆ Principal')+'</button><button type="button" class="gold" onclick="tagPhotoFromEditor('+i+')">🏷 Etiquetar en el centro</button><button type="button" class="secondary" onclick="removeExistingImage('+i+')">🗑</button></div></div>';
   }).join(''):'<small style="color:#9297a3">Las imágenes existentes se conservarán al editar si no haces cambios.</small>';
   el.querySelectorAll('.photo-tag-canvas').forEach(canvas=>{
     canvas.addEventListener('pointerup',e=>{
@@ -893,6 +896,7 @@ function makeMainImage(i){
   const imgs=imageListFromState();if(!imgs[i])return;
   const chosen=imgs[i],rest=imgs.filter((_,j)=>j!==i);
   editImageState.image=chosen;editImageState.gallery=rest;
+  editImageState.imagePosition=20; // nueva foto principal: encuadre por defecto, no el de la anterior
   renderGalleryEditor(null);
 }
 
@@ -923,6 +927,7 @@ function saveEntry(e){
   x.tags=dedupeTags(editingTags.slice());
   // Conservar siempre el estado visual existente; solo sustituirlo por el estado del editor.
   x.image=editImageState.image!==undefined?editImageState.image:(x.image||'');
+  x.imagePosition=editImageState.image?(Number(editImageState.imagePosition)||20):20;
   x.gallery=Array.isArray(editImageState.gallery)?editImageState.gallery.slice():(x.gallery||[]);
   x.photoTags=deepClone(editImageTags||x.photoTags||{});
   Object.keys(x.photoTags).forEach(k=>x.photoTags[k]=normalizePhotoTagRecords(x.photoTags[k]));
@@ -952,7 +957,7 @@ function saveEntry(e){
 function card(x){
  const safeId=esc(String(x.id));
  return '<article class="card" data-entry-id="'+safeId+'" tabindex="0" role="button" style="position:relative">'+
- (x.image?'<img src="'+esc(x.image)+'" alt="'+esc(x.name)+'">':'<div style="height:190px;display:grid;place-items:center;font-size:45px">✦</div>')+
+ (x.image?'<img src="'+esc(x.image)+'" alt="'+esc(x.name)+'" style="object-position:50% '+(x.imagePosition??20)+'%">':'<div style="height:190px;display:grid;place-items:center;font-size:45px">✦</div>')+
  '<button type="button" class="secondary card-fav" aria-label="'+(x.favorite?'Quitar favorito':'Añadir favorito')+'" style="position:absolute;top:10px;right:10px;border-radius:20px;padding:6px 9px;background:rgba(13,15,20,.86)">'+(x.favorite?'⭐':'☆')+'</button>'+
  '<div><h3>'+esc(x.name)+'</h3><small>'+esc(x.code||x.category)+'</small><br><small>'+esc(x.short||'')+'</small></div></article>'
 }
@@ -971,7 +976,7 @@ function toggleFavoriteById(id,event){
  x.favorite=!Boolean(x.favorite);x.updated=Date.now();save();render();
  if(current===id)openDetail(id);
 }
-function dashCard(x){return '<article class="card" onclick="openDetail(\''+esc(x.id)+'\')">'+(x.image?'<img src="'+x.image+'" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px">':'<div style="aspect-ratio:1;display:grid;place-items:center;background:#171a21;font-size:40px">✦</div>')+'<div><h3>'+esc(x.name)+'</h3><small>'+esc(x.code||x.category)+'</small></div></article>'}
+function dashCard(x){return '<article class="card" onclick="openDetail(\''+esc(x.id)+'\')">'+(x.image?'<img src="'+x.image+'" style="width:100%;aspect-ratio:1;object-fit:cover;object-position:50% '+(x.imagePosition??20)+'%;border-radius:12px">':'<div style="aspect-ratio:1;display:grid;place-items:center;background:#171a21;font-size:40px">✦</div>')+'<div><h3>'+esc(x.name)+'</h3><small>'+esc(x.code||x.category)+'</small></div></article>'}
 function gridIdFor(c){return ({Personajes:'personajesGrid',Reinos:'reinosGrid',Lugares:'lugaresGrid',Organizaciones:'organizacionesGrid',Criaturas:'criaturasGrid',Objetos:'objetosGrid',Historia:'historiaGrid',Capítulos:'capítulosGrid',Biblioteca:'bibliotecaGrid',Magia:'magiaGrid'})[c]}
 function categoryId(c){return ({Personajes:'personajes',Reinos:'reinos',Lugares:'lugares',Organizaciones:'organizaciones',Criaturas:'criaturas',Objetos:'objetos',Historia:'historia',Capítulos:'capitulos',Biblioteca:'biblioteca',Magia:'magia'})[c]||'inicio'}
 function renderCategoryView(c=activeCategory){activeCategory=c;const grid=document.getElementById(gridIdFor(c));if(!grid)return;const key=c.toLowerCase(),q=(document.getElementById('search_'+key)?.value||'').trim().toLowerCase(),sub=document.getElementById('sub_'+key)?.value||'',sort=document.getElementById('sort_'+key)?.value||'number';let arr=db.filter(x=>{if(x.category!==c||x.trashed)return false;const hay=searchableText(x).toLowerCase();return (!q||hay.includes(q))&&(!sub||x.subcategory===sub)});arr.sort((a,b)=>sort==='name'?String(a.name).localeCompare(String(b.name)):sort==='updated'?(b.updated||0)-(a.updated||0):sort==='favorite'?Number(b.favorite)-Number(a.favorite):(a.number||999999)-(b.number||999999));grid.innerHTML=arr.map(card).join('')||'<p style="color:#9297a3;padding:12px">No hay fichas que coincidan.</p>';bindCardEvents();const sf=document.getElementById('sub_'+key);if(sf){const current=sf.value,subs=getSubcategoryList(c).sort((a,b)=>a.localeCompare(b,'es'));sf.innerHTML='<option value="">Todas las subcategorías</option>'+subs.map(s=>'<option value="'+esc(s)+'">'+esc(s)+'</option>').join('');sf.value=subs.includes(current)?current:''}}
@@ -1065,7 +1070,7 @@ function editCurrent(ev){
   updateSubcategoryOptions(x.subcategory||'');
   setStructuredData(x);
   loadRelationRows(Array.isArray(x.relations)?x.relations:[]);
-  editImageState={image:x.image||'',gallery:Array.isArray(x.gallery)?x.gallery.slice():[]};
+  editImageState={image:x.image||'',gallery:Array.isArray(x.gallery)?x.gallery.slice():[],imagePosition:x.imagePosition??20};
   mainImage.value='';
   galleryFiles.value='';
   renderGalleryEditor(x);
@@ -1481,13 +1486,17 @@ function toggleMenu(btn){
   const r=btn.getBoundingClientRect();
   const width=Math.min(320,Math.max(210,window.innerWidth-24));
   let left=Math.max(12,Math.min(window.innerWidth-width-12,r.right-width));
-  let top=r.bottom+6;
   const maxH=Math.min(window.innerHeight*.7,500);
-  if(top+maxH>window.innerHeight-12)top=Math.max(12,r.top-maxH-6);
   currentPanel.style.left=left+'px';
-  currentPanel.style.top=top+'px';
   currentPanel.style.width=Math.min(width,window.innerWidth-24)+'px';
   currentPanel.style.maxHeight=maxH+'px';
+  // Altura REAL del panel (puede ser un solo botón), no la máxima teórica:
+  // si no, un menú corto "voltea" hacia arriba como si midiera 500px y
+  // aparece lejos del botón, arriba del todo de la pantalla.
+  const panelH=currentPanel.offsetHeight;
+  let top=r.bottom+6;
+  if(top+panelH>window.innerHeight-12)top=Math.max(12,r.top-panelH-6);
+  currentPanel.style.top=top+'px';
   setTimeout(()=>document.addEventListener('pointerdown',sikuMenuOutside,{capture:true,once:true}),0);
   return false;
 }
@@ -1666,9 +1675,20 @@ function openPhotoTagPicker(src,x,y){
 
 /* Grafo: el nodo central siempre es la ficha seleccionada */
 function renderGraph(rootId=current){
-  const root=db.find(x=>x.id===rootId&&!x.trashed),wrap=document.getElementById('graphRoot');
+  const wrap=document.getElementById('graphRoot');
   if(!wrap)return;
-  if(!root){wrap.innerHTML='<div class="empty">Abre una ficha y usa “Grafo” para centrarla.</div>';return;}
+  // Mantiene el desplegable de "elige una ficha" sincronizado con todas las fichas existentes,
+  // para poder centrar el grafo sin tener que abrir antes ninguna ficha.
+  const sel=document.getElementById('graphRootSelect');
+  if(sel){
+    const opts=db.filter(x=>!x.trashed).sort((a,b)=>a.name.localeCompare(b.name));
+    const wanted=['<option value="">Elige una ficha para centrar el grafo…</option>']
+      .concat(opts.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+' · '+esc(x.category)+'</option>'));
+    if(sel.dataset.count!==String(opts.length)){sel.innerHTML=wanted.join('');sel.dataset.count=String(opts.length);}
+    sel.value=rootId&&opts.some(x=>x.id===rootId)?rootId:'';
+  }
+  const root=db.find(x=>x.id===rootId&&!x.trashed);
+  if(!root){wrap.innerHTML='<div class="empty">Elige una ficha en el desplegable de arriba, o ábrela y usa “Grafo” para centrarla.</div>';return;}
   const depth=Number(document.getElementById('graphDepth')?.value||1);
   const filter=document.getElementById('graphFilter')?.value||'all';
   const relKind=t=>{const s=String(t||'').toLowerCase();if(['familia','padre','madre','hijo/a','hermano/a','hermana de','hermano de','primo/a','tío/a','abuelo/a','abuela/o','pareja'].some(v=>s.includes(v)))return 'family';if(['amigo','amiga','aliado','compañero','conocido','protege'].some(v=>s.includes(v)))return 'friend';if(['rival','enemigo'].some(v=>s.includes(v)))return 'conflict';if(['mentor','alumno'].some(v=>s.includes(v)))return 'mentor';return 'other';};
@@ -1772,7 +1792,7 @@ function openDetail(id){
   const x=db.find(a=>a.id===id);if(!x)return;
   current=id;
   const body=document.getElementById('detail');if(!body)return;
-  const image=x.image?'<img src="'+esc(x.image)+'" style="width:170px;height:210px;object-fit:cover;border-radius:18px;cursor:pointer" onclick="openViewer(0,event)">':'<div style="width:170px;height:210px;border-radius:18px;background:#171a21;display:grid;place-items:center;font-size:60px">✦</div>';
+  const image=x.image?'<img src="'+esc(x.image)+'" style="width:170px;height:210px;object-fit:cover;object-position:50% '+(x.imagePosition??20)+'%;border-radius:18px;cursor:pointer" onclick="openViewer(0,event)">':'<div style="width:170px;height:210px;border-radius:18px;background:#171a21;display:grid;place-items:center;font-size:60px">✦</div>';
   body.innerHTML='<div class="detail-hero">'+image+'<div><span class="badge-id">'+esc(x.code||'')+'</span><h1>'+esc(x.name)+'</h1><div style="color:#9297a3">'+esc(x.category)+(x.subcategory?' · '+esc(x.subcategory):'')+'</div><p>'+wikiHtml(x.short||'')+'</p></div></div>'+
     structuredDetail(x)+section('Contenido',x.content)+historyChainSection(x)+relationSection(x)+appearancesSection(x)+wikiLinksSection(x)+gallerySection(x)+taggedPhotoSection(x)+photosWhereTaggedSection(x)+seeAlsoSection(x)+
     '<section style="margin-top:22px"><h3>Etiquetas</h3><div class="chips">'+((x.tags||[]).map(t=>'<button type="button" class="chip" onclick="exploreTag('+JSON.stringify(t)+',event)">#'+esc(t)+'</button>').join('')||'<span style="color:#9297a3">Sin etiquetas</span>')+'</div></section>';
